@@ -1,0 +1,108 @@
+package com.koreait.pjt.board;
+
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import com.koreait.pjt.Const;
+import com.koreait.pjt.MyUtils;
+import com.koreait.pjt.ViewResolver;
+import com.koreait.pjt.db.BoardDAO;
+import com.koreait.pjt.db.BoardDomain;
+import com.koreait.pjt.vo.BoardVO;
+import com.koreait.pjt.vo.UserVO;
+
+@WebServlet("/board/regmod")
+public class BoardRegModSer extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+	//화면 띄우는 용도(등록창/수정창)
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {	
+		String strI_board = request.getParameter("i_board");
+		
+		
+		if(strI_board != null) {
+			int i_board = MyUtils.parseStrToInt(strI_board);
+			BoardVO param = new BoardVO();
+			param.setI_board(i_board);
+			
+			BoardDomain data = BoardDAO.selBoard(param);
+			request.setAttribute("data", data);
+		}
+		
+		
+		
+		ViewResolver.forwardLoginChk("/board/regmod", request, response);
+		
+		
+		
+	}
+
+	//처리 용도(DB에 등록/수정)실시
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String strI_board = request.getParameter("i_board");
+		String title = request.getParameter("title");
+		String ctnt = request.getParameter("ctnt");
+		
+		HttpSession hs = request.getSession();
+		UserVO loginUser = (UserVO) hs.getAttribute(Const.LOGIN_USER);
+		
+		String filter1 = scriptFilter(title);
+		String filter2 = scriptFilter(ctnt);
+		String filter3 = swearWordFilter(filter1);
+		String filter4 = swearWordFilter(filter2);
+		
+		BoardVO param = new BoardVO();
+		param.setTitle(filter3);
+		param.setCtnt(filter4);
+		param.setI_user(loginUser.getI_user());
+		int result = 0;
+		
+		
+		
+		if("".equals(strI_board)) {
+			result = BoardDAO.insBoard(param);
+			response.sendRedirect("/board/list");
+			
+		}else {
+			int i_board = MyUtils.parseStrToInt(strI_board);
+			param.setI_board(i_board);
+			result = BoardDAO.updBoard(param);
+			response.sendRedirect("/board/detail?i_board=" + strI_board);
+		}
+	
+	}
+	//욕필터
+	private String swearWordFilter(final String ctnt) {
+		String[] filters = {"개새끼", "미친냔" ,"ㄱ ㅐ ㅅ ㅐ ㄲ ㅣ"};
+		String result = ctnt;
+		for(int i=0; i<filters.length; i++) {
+			result = result.replace(filters[i], "***");
+		}
+		return result;
+				
+}
+	
+	
+	//스크립트 필터
+	private String scriptFilter(final String ctnt) {
+		String[] filters = {"<script>", "</script>"};
+		String[] filterReplaces = {"&lt;script&gt;", "&lt;/script&gt;"};
+		
+		String result = ctnt;
+		for(int i = 0; i<filters.length; i++) {
+			result = result.replace(filters[i], filterReplaces[i]);
+			
+		}
+		return result;
+		
+		
+		
+	}
+
+}
