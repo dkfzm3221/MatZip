@@ -26,13 +26,12 @@
 		
 			axios.get('/user/ajaxIdChk',{
 				params:{
-					user_id
+					'user_id' : user_id
 				}
 			}).then(function(res){
 				console.log(res)
 				if(res.data.result == 2 ){//아이디 없음
-					idChkResult.innerText = '사용할 수 있는 아이디입니다.'
-					
+					idChkResult.innerText = '사용할 수 있는 아이디입니다.'			
 				}else if(res.data.result == 3){//아이디 중복
 					idChkResult.innerText = '이미 사용중인 아이디입니다.'
 				}
