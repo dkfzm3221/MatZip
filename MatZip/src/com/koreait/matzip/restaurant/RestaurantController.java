@@ -1,16 +1,21 @@
 package com.koreait.matzip.restaurant;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
 import com.koreait.matzip.CommonDAO;
 import com.koreait.matzip.CommonUtils;
 import com.koreait.matzip.Const;
+import com.koreait.matzip.FileUtils;
 import com.koreait.matzip.SecurityUtils;
 import com.koreait.matzip.ViewRef;
 import com.koreait.matzip.user.UserService;
 import com.koreait.matzip.vo.RestaurantDomain;
+import com.koreait.matzip.vo.RestaurantRecommendMenuVO;
 import com.koreait.matzip.vo.RestaurantVO;
 import com.koreait.matzip.vo.UserVO;
 import com.oreilly.servlet.MultipartRequest;
@@ -76,7 +81,10 @@ public class RestaurantController {
 		
 		RestaurantVO param = new RestaurantVO();
 		param.setI_rest(i_rest);
-
+		
+		request.setAttribute("css", new String[] {"restaurant"});
+		
+		request.setAttribute("recommendMenuList", service.getRecommendMenuList(i_rest));
 		request.setAttribute("data", service.getRest(param));
 		request.setAttribute(Const.TITLE, "디테일");
 		request.setAttribute(Const.VIEW, "restaurant/restDetail");
@@ -84,29 +92,32 @@ public class RestaurantController {
 	}
 	
 	public String addRecMenusProc(HttpServletRequest request) {
+		int i_rest = service.addRecMenus(request);
 		
-		String uploads = request.getRealPath("/res/img");
-		MultipartRequest multi = null;
-		String strI_rest = null;
+		return "redirect:/restaurant/restDetail?i_rest=" + i_rest;
 		
-		String[] menu_nmArr = null;
-		String[] menu_priceArr = null;
+	}
+	public String ajaxDelRecMenu(HttpServletRequest request) {
+		int i_rest = CommonUtils.getIntParameter("i_rest", request);
+		int seq = CommonUtils.getIntParameter("seq", request);
 		
-		try {
-			multi=new MultipartRequest(request, uploads,5*1024*1024,"UTF-8", new DefaultFileRenamePolicy());
-			
-			strI_rest = multi.getParameter("i_rest");
-			menu_nmArr = multi.getParameterValues("menu_nm");
-			menu_priceArr = multi.getParameterValues("menu_price");
-		}catch(IOException e) {
-			e.printStackTrace();
-		}
-		if(menu_nmArr != null && menu_priceArr != null) {
-			
-		}
+		RestaurantRecommendMenuVO param = new RestaurantRecommendMenuVO();
+		param.setI_rest(i_rest);
+		param.setSeq(seq);
 		
-		return "redirect:/restaurant/restDetail?i_rest=" + strI_rest;
+		int result = service.delRecMenu(param);
+		
+		return "ajax:" + result;
 	}
 
-
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
