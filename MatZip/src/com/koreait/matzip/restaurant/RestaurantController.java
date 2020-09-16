@@ -88,29 +88,37 @@ public class RestaurantController {
 		request.setAttribute("data", service.getRest(param));
 		request.setAttribute(Const.TITLE, "디테일");
 		request.setAttribute(Const.VIEW, "restaurant/restDetail");
+		request.setAttribute("menuList", service.getSelMenuList(i_rest));
 		return ViewRef.TEMP_MENU_TEMP;
 	}
 	
-	public String addRecMenusProc(HttpServletRequest request) {
+	public String addRecMenusProc(HttpServletRequest request) { //추천 메뉴
 		int i_rest = service.addRecMenus(request);
 		
 		return "redirect:/restaurant/restDetail?i_rest=" + i_rest;
 		
 	}
-	public String ajaxDelRecMenu(HttpServletRequest request) {
+	
+	public String addMenusProc(HttpServletRequest request) { //메뉴
+		int i_rest = service.addMenus(request);
+		return "redirect:/restaurant/restDetail?i_rest=" + i_rest;
+	}
+	
+	public String ajaxDelRecMenu(HttpServletRequest request) { //메뉴 삭제
 		int i_rest = CommonUtils.getIntParameter("i_rest", request);
 		int seq = CommonUtils.getIntParameter("seq", request);
+		int i_user = SecurityUtils.getLogunUserPk(request);
 		
 		RestaurantRecommendMenuVO param = new RestaurantRecommendMenuVO();
 		param.setI_rest(i_rest);
 		param.setSeq(seq);
+		param.setI_user(i_user);
 		
 		int result = service.delRecMenu(param);
 		
 		return "ajax:" + result;
 	}
 
-	
 	
 	
 	
